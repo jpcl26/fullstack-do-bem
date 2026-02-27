@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validação via CSS</title>
+    <title>Validação via Login</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -24,31 +24,74 @@
             width: 300px;
         }
 
-        h2 { color: #333; }
+        h2 { 
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
 
-        /* Esconde o checkbox real */
-        #validator { display: none; }
+        /* Formulário de Login */
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-        /* Estilização do Botão (Label) */
-        .btn-check {
-            display: inline-block;
+        .form-group {
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0,123,255,0.3);
+        }
+
+        /* Botão de Login */
+        .btn-login {
             background-color: #007bff;
             color: white;
             padding: 10px 20px;
+            border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
             transition: background 0.3s;
-            user-select: none;
         }
 
-        .btn-check:hover { background-color: #0056b3; }
+        .btn-login:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-login:active {
+            background-color: #004085;
+        }
 
         /* Mensagens de Feedback */
         .message {
             margin-top: 20px;
             padding: 15px;
             border-radius: 8px;
-            display: none; /* Escondidas por padrão */
+            display: none;
             font-weight: bold;
         }
 
@@ -64,21 +107,34 @@
             border: 1px solid #f5c6cb;
         }
 
-        /* Lógica de Validação com CSS */
-        
-        /* 1. Estado Inicial: Mostra "Acesso Negado" se NÃO estiver marcado */
-        #validator:not(:checked) ~ .denied {
-            display: block;
-        }
-
-        /* 2. Estado Positivo: Mostra "Acesso Concedido" quando clicado */
-        #validator:checked ~ .success {
-            display: block;
-        }
-
-        /* 3. Esconde o "Negado" quando o "Concedido" aparece */
-        #validator:checked ~ .denied {
+        /* Área de sucesso */
+        .restricted-area {
             display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #e7f3ff;
+            border-radius: 8px;
+            border: 1px solid #b3d9ff;
+        }
+
+        .restricted-area.show {
+            display: block;
+        }
+
+        .btn-logout {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+            transition: background 0.3s;
+        }
+
+        .btn-logout:hover {
+            background-color: #c82333;
         }
     </style>
 </head>
@@ -86,17 +142,88 @@
 
     <div class="login-card">
         <h2>Área Restrita</h2>
-        <p>Clique no botão para validar sua identidade:</p>
+        <p>Faça login para acessar:</p>
 
-        <input type="checkbox" id="validator">
-        
-        <label for="validator" class="btn-check">
-            Validar Acesso
-        </label>
+        <!-- Formulário de Login -->
+        <div class="login-form" id="loginForm">
+            <div class="form-group">
+                <label for="username">Usuário:</label>
+                <input type="text" id="username" placeholder="Digite seu usuário">
+            </div>
 
-        <div class="message success">✅ Acesso Concedido!</div>
-        <div class="message denied">❌ Acesso Negado!</div>
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" placeholder="Digite sua senha">
+            </div>
+
+            <button class="btn-login" onclick="validarLogin()">Login</button>
+        </div>
+
+        <!-- Mensagens de Feedback -->
+        <div class="message denied" id="deniedMessage">❌ Usuário ou senha incorretos!</div>
+        <div class="message success" id="successMessage">✅ Acesso Concedido!</div>
+
+        <!-- Área Restrita (após login) -->
+        <div class="restricted-area" id="restrictedArea">
+            <h3>Bem-vindo!</h3>
+            <p>Você acessou a área restrita com sucesso.</p>
+            <button class="btn-logout" onclick="fazerLogout()">Logout</button>
+        </div>
     </div>
+
+    <script>
+        // Credenciais de exemplo (em produção, isso seria validado no servidor)
+        const usuario_correto = "admin";
+        const senha_correta = "12345";
+
+        function validarLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const deniedMessage = document.getElementById('deniedMessage');
+            const successMessage = document.getElementById('successMessage');
+            const restrictedArea = document.getElementById('restrictedArea');
+            const loginForm = document.getElementById('loginForm');
+
+            // Limpar mensagens anteriores
+            deniedMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            // Validar credenciais
+            if (username === usuario_correto && password === senha_correta) {
+                // Login bem-sucedido
+                successMessage.style.display = 'block';
+                loginForm.style.display = 'none';
+                restrictedArea.classList.add('show');
+            } else {
+                // Login falhou
+                deniedMessage.style.display = 'block';
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        function fazerLogout() {
+            const deniedMessage = document.getElementById('deniedMessage');
+            const successMessage = document.getElementById('successMessage');
+            const restrictedArea = document.getElementById('restrictedArea');
+            const loginForm = document.getElementById('loginForm');
+
+            // Limpar e resetar
+            deniedMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            restrictedArea.classList.remove('show');
+            loginForm.style.display = 'flex';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // Permitir login ao pressionar Enter
+        document.getElementById('password').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                validarLogin();
+            }
+        });
+    </script>
 
 </body>
 </html>
